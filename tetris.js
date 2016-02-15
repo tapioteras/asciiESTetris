@@ -4,6 +4,28 @@ var velocity = 100;
 var output = '';
 var drawCompleted = false;
 var targetY = 0;
+var isPause = false;
+
+
+var Mass = {
+  x: 0,
+  y: 0,
+  color: 'black'
+};
+
+var MassConverter = function() {
+  return {
+    convert: function(brick, idInRepo) {
+      var base = brick.base;
+      for (var i = 0; i < brick.body.length; i++) {
+        var coord = brick.body[i];
+
+      }
+    }
+  }
+}();
+
+var MassRepo = [];
 
 var Positions = {
   n: 0,
@@ -12,6 +34,19 @@ var Positions = {
   w: 3,
   default: 0
 }
+
+var KeysPressed = {
+  left: false,
+  right: false,
+  up: false,
+  down: false,
+  reset: function () {
+    this.left = false;
+    this.right = false;
+    this.up = false;
+    this.down = false;
+  }
+};
 
 // #
 // #
@@ -32,7 +67,7 @@ var Brick = function(basePosition, drawBase, brickBody) {
   if (brickBody) {
      _body = brickBody;
   }
-  
+
   return {
     position: _position,
     base: _base,
@@ -48,10 +83,27 @@ var Brick = function(basePosition, drawBase, brickBody) {
       }
     },
     moveLeft: function() {
-      _base.x = _base.x - 1;
+      if (_base.x) {
+        _base.x = _base.x - 1;
+      }
     },
     moveRight: function() {
-      _base.x = _base.x + 1;
+      if (_base.x <= width) {
+        _base.x = _base.x + 1;
+      }
+    },
+    print: function() {
+      if (KeysPressed.left) {
+        this.moveLeft();
+      } else if (KeysPressed.right) {
+        this.moveRight();
+      }
+
+      if (!this.frozen) {
+        return '<span style="color: ' + this.color +';">&#9776;</span>';
+      } else {
+        return '<span style="color: black;">&#9776;</span>';
+      }
     }
   }
 };
@@ -75,49 +127,52 @@ var shouldDrawBrick = function(x, y, brickToDraw) {
       }
     }
   }
-  return base.x === x && base.y === y;
+  return false;
 };
 
 var printFrame = function() {
   output = '';
   drawCompleted = false;
-  var targetX = parseInt(height / 2);
+  refreshBrickRepo();
   
-  for (var i = 0; i <= height; i++) {
-    for (var j = 0; j <= width; j++) {
-      if (targetY > height) {
-        // Start over
-        targetY = 0;
-        // TODO refactor duplicate code
-        output += '<span style="color: red;">&#9783;</span>';
-      } else if ((j == targetX && 
-          i == targetY && 
-          !drawCompleted) || shouldDrawBrick(j, i, brickRepo[0]))
-      {
-        // Draw brick state
-        output += '<span style="color: blue;">&#9776;</span>';
-        drawCompleted = true;
-        targetY++;
-      } else {
-        output += '<span style="color: red;">&#9783;</span>';
+  for (var y = 0; y <= height; y++) {
+    for (var x = 0; x <= width; x++) {
+      for (var i = 0; i < brickRepo.length; i++) {
+        var brick = brickRepo[i];
+        if (targetY > height) {
+          // Start over
+          targetY = 0;
+          // TODO refactor duplicate code
+          output += '<span style="color: red;">&#9783;</span>';
+        } else if (( 
+            y == targetY && 
+            !drawCompleted) || shouldDrawBrick(x, y, brick))
+        {
+          // Draw brick state
+          output += brickRepo[0].print();
+          drawCompleted = true;
+          targetY++;
+        } else {
+          output += '<span style="color: red;">&#9783;</span>';
+        }
       }
     }
     output += '<br/>';
   }
-  refreshBrickRepo();
+
   document.body.innerHTML = output;
-  i++;
+  KeysPressed.reset();
 };
 
 var renderLoop = function(printCnt) {
-  var worldState = {
-    objects: []
-  };
   setInterval(printCnt, velocity);
 }(printFrame);
 
 document.body.addEventListener("load", renderLoop);
 document.body.addEventListener('keydown', function(e) {
-    // todo: bind arrow keys!
-    //msg.textContent = 'keydown:' + e.keyCode;
+    if (e.keyCode == 37) {
+      KeysPressed.left = true;
+    } else if (e.keyCode == 39) {
+      KeysPressed.right = true;
+    }
 });
