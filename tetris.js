@@ -6,11 +6,12 @@ var drawCompleted = false;
 var targetY = 0;
 var isPause = false;
 
-
-var Mass = {
-  x: 0,
-  y: 0,
-  color: 'black'
+var Mass = function(x, y) {
+  return {
+    x: (x ? x : 0),
+    y: (y ? y:  0),
+    color: 'green'
+  };
 };
 
 var MassConverter = function() {
@@ -22,10 +23,12 @@ var MassConverter = function() {
 
       }
     }
-  }
+  };
 }();
 
-var MassRepo = [];
+var MassRepo = [
+  new Mass
+];
 
 var Positions = {
   n: 0,
@@ -33,20 +36,22 @@ var Positions = {
   s: 2,
   w: 3,
   default: 0
-}
-
-var KeysPressed = {
-  left: false,
-  right: false,
-  up: false,
-  down: false,
-  reset: function () {
-    this.left = false;
-    this.right = false;
-    this.up = false;
-    this.down = false;
-  }
 };
+
+var KeysPressed = function() {
+  return {
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+    reset: function() {
+      this.left = false;
+      this.right = false;
+      this.up = false;
+      this.down = false;
+    }
+  };
+}();
 
 // #
 // #
@@ -79,33 +84,35 @@ var Brick = function(basePosition, drawBase, brickBody) {
         this.frozen = true;
       } 
       if (!this.frozen) {
-        _base.y = _base.y + 1;
+        _base.y += 1;
       }
     },
     moveLeft: function() {
       if (_base.x) {
-        _base.x = _base.x - 1;
+        _base.x -= 1;
       }
     },
     moveRight: function() {
       if (_base.x <= width) {
-        _base.x = _base.x + 1;
+        _base.x += 1;
       }
     },
     print: function() {
       if (KeysPressed.left) {
         this.moveLeft();
+        KeysPressed.left = false;
       } else if (KeysPressed.right) {
         this.moveRight();
+        KeysPressed.right = false;
       }
 
       if (!this.frozen) {
-        return '<span style="color: ' + this.color +';">&#9776;</span>';
+        return '<span class="brick" style="color: ' + this.color +';">&#9776;</span>';
       } else {
-        return '<span style="color: black;">&#9776;</span>';
+        return '<span class="frozen" style="color: black;">&#9776;</span>';
       }
     }
-  }
+  };
 };
 
 var brickRepo = [new Brick()];
@@ -121,10 +128,8 @@ var shouldDrawBrick = function(x, y, brickToDraw) {
   for (var i = 0; i < brickToDraw.body.length; i++) {
     var relativeX = brickToDraw.body[i].x + base.x;
     var relativeY = brickToDraw.body[i].y + base.y;
-    if (y === relativeY) {
-      if (x === relativeX) {
-        return true;
-      }
+    if (y === relativeY && x === relativeX) {
+      return true;
     }
   }
   return false;
@@ -133,8 +138,7 @@ var shouldDrawBrick = function(x, y, brickToDraw) {
 var printFrame = function() {
   output = '';
   drawCompleted = false;
-  refreshBrickRepo();
-  
+  refreshBrickRepo(); 
   for (var y = 0; y <= height; y++) {
     for (var x = 0; x <= width; x++) {
       for (var i = 0; i < brickRepo.length; i++) {
@@ -143,23 +147,19 @@ var printFrame = function() {
           // Start over
           targetY = 0;
           // TODO refactor duplicate code
-          output += '<span style="color: red;">&#9783;</span>';
-        } else if (( 
-            y == targetY && 
-            !drawCompleted) || shouldDrawBrick(x, y, brick))
-        {
+          output += '<span class="bg" style="color: red;">&#9783;</span>';
+        } else if (shouldDrawBrick(x, y, brick)) {
           // Draw brick state
           output += brickRepo[0].print();
           drawCompleted = true;
           targetY++;
         } else {
-          output += '<span style="color: red;">&#9783;</span>';
+          output += '<span class="bg" style="color: red;">&#9783;</span>';
         }
       }
     }
     output += '<br/>';
   }
-
   document.body.innerHTML = output;
   KeysPressed.reset();
 };
@@ -170,9 +170,13 @@ var renderLoop = function(printCnt) {
 
 document.body.addEventListener("load", renderLoop);
 document.body.addEventListener('keydown', function(e) {
-    if (e.keyCode == 37) {
-      KeysPressed.left = true;
-    } else if (e.keyCode == 39) {
-      KeysPressed.right = true;
-    }
+  if (e.keyCode === 37) {
+    KeysPressed.left = true;
+  } else if (e.keyCode === 39) {
+    KeysPressed.right = true;
+  } else if (e.keyCode === 40) {
+    KeysPressed.down = true;
+  } else if (e.keyCode === 38) {
+    KeysPressed.up = true;
+  }
 });
