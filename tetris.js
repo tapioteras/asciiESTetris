@@ -1,4 +1,4 @@
-var width = 30;
+var width = 10;
 var height = 30;
 var velocity = 100;
 var output = '';
@@ -53,17 +53,65 @@ var KeysPressed = function() {
   };
 }();
 
+/*
+
+ #
+##
+{x: 0, y: 0}, 
+{x: 0, y: 1},
+{x: -1, y: 1}
+
+##
+ #
+{x: 0, y: 0}, 
+{x: 0, y: 1},
+{x: 0, y: 1}
+
+-----------
+
+#
+#
+##
+{x: 0, y: 0}, 
+{x: 0, y: 1}, 
+{x: 0, y: 2},
+{x: 1, y: 2} 
+
+  #
+###
+{x: 0, y: 0}, 
+{x: 0, y: 1}, 
+{x: -1, y: 1},
+{x: -2, y: 1} 
+
+##
+ #
+ #
+{x: 0, y: 0}, 
+{x: -1, y: 0}, 
+{x: -1, y: 1},
+{x: -1, y: 2} 
+
+###
+#
+{x: 0, y: 0}, 
+{x: -1, y: 0}, 
+{x: -2, y: 0},
+{x: -2, y: 1} 
+
+*/
+
 // #
 // #
 // ##
 var Brick = function(basePosition, drawBase, brickBody) {
   var _position = Positions.default;
-  var _base = {x: 15, y: 0};
+  var _base = {x: 5, y: 0};
   var _body = [
     {x: 0, y: 0}, 
-    {x: 0, y: -1}, 
-    {x: 1, y: 0}, 
-    {x: 0, y: -2}
+{x: 0, y: 1}, 
+{x: -1, y: 1},
+{x: -2, y: 1} 
   ];
   
   if (basePosition) {
@@ -77,10 +125,45 @@ var Brick = function(basePosition, drawBase, brickBody) {
     position: _position,
     base: _base,
     body: _body,
-    frozen: false, // TODO
+    frozen: false, // TODO deprecated because of mass repo
     color: 'blue', // TODO
+    getRelativeX: function() {
+      var relativeX = _base.x;
+      for (var i = 0; i < _body.length; i++) {
+        var bodyPart = _base.x + _body[i].x;
+        if (bodyPart > relativeX) {
+          relativeX = bodyPart;
+        }
+      }
+      return relativeX;
+    },
+    getRelativeY: function() {
+      // TODO refactor duplicate code
+      var relativeY = _base.y;
+      for (var i = 0; i < _body.length; i++) {
+        var bodyPart = _base.y + _body[i].y;
+        if (bodyPart > relativeY) {
+          relativeY = bodyPart;
+        }
+      }
+      return relativeY;
+    },
+    getMinRelativeX: function() {
+      // TODO refactor duplicate code
+      var minRleativeX = _base.x;
+      for (var i = 0; i < _body.length; i++) {
+        var bodyPart = _base.x - (_body[i].x < 0 ? Math.abs(_body[i].x) : 0);
+        if (bodyPart < minRleativeX) {
+          minRleativeX = bodyPart;
+        }
+      }
+      return minRleativeX;
+    },
+    moveUp: function() {
+      this.rotate(true);
+    },
     moveDown: function() {
-      if (height <= _base.y) {
+      if (height <= this.getRelativeY()) {
         this.frozen = true;
       } 
       if (!this.frozen) {
@@ -88,23 +171,31 @@ var Brick = function(basePosition, drawBase, brickBody) {
       }
     },
     moveLeft: function() {
-      if (_base.x) {
+      console.log(this.getMinRelativeX());
+      if (this.getMinRelativeX()) {
         _base.x -= 1;
       }
     },
     moveRight: function() {
-      if (_base.x <= width) {
+      if (this.getRelativeX() < width) {
         _base.x += 1;
+      }
+    },
+    rotate: function(clockwise) {
+      if (clockwise) {
+        // TODO do rotation logic
       }
     },
     print: function() {
       if (KeysPressed.left) {
         this.moveLeft();
-        KeysPressed.left = false;
       } else if (KeysPressed.right) {
         this.moveRight();
-        KeysPressed.right = false;
+      } else if (KeysPressed.up) {
+        this.moveUp();
       }
+
+      KeysPressed.reset();
 
       if (!this.frozen) {
         return '<span class="brick" style="color: ' + this.color +';">&#9776;</span>';
@@ -161,7 +252,6 @@ var printFrame = function() {
     output += '<br/>';
   }
   document.body.innerHTML = output;
-  KeysPressed.reset();
 };
 
 var renderLoop = function(printCnt) {
