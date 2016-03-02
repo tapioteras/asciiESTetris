@@ -1,6 +1,6 @@
 var width = 10;
 var height = 30;
-var velocity = 100;
+var velocity = 200;
 var output = '';
 var drawCompleted = false;
 var targetY = 0;
@@ -150,9 +150,9 @@ var Brick = function(basePosition, drawBase, brickBody) {
     frozen: false, // TODO deprecated because of mass repo
     color: 'blue', // TODO
     getRelativeX: function() {
-      var relativeX = _base.x;
-      for (var i = 0; i < _body.length; i++) {
-        var bodyPart = _base.x + _body[i].x;
+      var relativeX = this.base.x;
+      for (var i = 0; i < this.body.length; i++) {
+        var bodyPart = this.base.x + this.body[i].x;
         if (bodyPart > relativeX) {
           relativeX = bodyPart;
         }
@@ -161,9 +161,9 @@ var Brick = function(basePosition, drawBase, brickBody) {
     },
     getRelativeY: function() {
       // TODO refactor duplicate code
-      var relativeY = _base.y;
-      for (var i = 0; i < _body.length; i++) {
-        var bodyPart = _base.y + _body[i].y;
+      var relativeY = this.base.y;
+      for (var i = 0; i < this.body.length; i++) {
+        var bodyPart = this.base.y + this.body[i].y;
         if (bodyPart > relativeY) {
           relativeY = bodyPart;
         }
@@ -172,9 +172,9 @@ var Brick = function(basePosition, drawBase, brickBody) {
     },
     getMinRelativeX: function() {
       // TODO refactor duplicate code
-      var minRleativeX = _base.x;
-      for (var i = 0; i < _body.length; i++) {
-        var bodyPart = _base.x - (_body[i].x < 0 ? Math.abs(_body[i].x) : 0);
+      var minRleativeX = this.base.x;
+      for (var i = 0; i < this.body.length; i++) {
+        var bodyPart = this.base.x - (this.body[i].x < 0 ? Math.abs(this.body[i].x) : 0);
         if (bodyPart < minRleativeX) {
           minRleativeX = bodyPart;
         }
@@ -191,17 +191,17 @@ var Brick = function(basePosition, drawBase, brickBody) {
         this.frozen = true;
       } 
       if (!this.frozen) {
-        _base.y += 1;
+        this.base.y += 1;
       }
     },
     moveLeft: function() {
       if (this.getMinRelativeX()) {
-        _base.x -= 1;
+        this.base.x -= 1;
       }
     },
     moveRight: function() {
       if (this.getRelativeX() < width) {
-        _base.x += 1;
+        this.base.x += 1;
       }
     },
     rotate: function(clockwise) {
