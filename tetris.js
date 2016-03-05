@@ -103,43 +103,9 @@ var KeysPressed = function() {
 // #
 // #
 // ##
-var Brick = function(basePosition, drawBase, brickBody) {
+var Brick = function(positions, basePosition, brickBody) {
   var _base = {x: 5, y: 0};
-  var _positionCoords = [
-  	{
-  		position: Positions.n,
-  		coords: [
-  			{x: 0, y: 0}, 
-			{x: 0, y: 1}, 
-			{x: 0, y: 2},
-			{x: 1, y: 2}]
-  	},
-  	{
-  		position: Positions.e,
-  		coords: [
-  			{x: 0, y: 0}, 
-			{x: 0, y: 1}, 
-			{x: -1, y: 1},
-			{x: -2, y: 1}]
-  	},
-  	{
-  		position: Positions.s,
-  		coords: [
-  			{x: 0, y: 0}, 
-			{x: -1, y: 0}, 
-			{x: -1, y: 1},
-			{x: -1, y: 2}]
-  	},
-  	{
-  		position: Positions.w,
-  		coords: [
-  			{x: 0, y: 0}, 
-			{x: -1, y: 0}, 
-			{x: -2, y: 0},
-			{x: -2, y: 1}]
-  	}
-  ];
-  
+  var _positionCoords = positions || [];
   var _position = basePosition || Positions.default;
   var _body = brickBody || _positionCoords[_position].coords;
 
@@ -172,14 +138,23 @@ var Brick = function(basePosition, drawBase, brickBody) {
     },
     getMinRelativeX: function() {
       // TODO refactor duplicate code
-      var minRleativeX = this.base.x;
+      var minRelativeX = this.base.x;
       for (var i = 0; i < this.body.length; i++) {
         var bodyPart = this.base.x - (this.body[i].x < 0 ? Math.abs(this.body[i].x) : 0);
-        if (bodyPart < minRleativeX) {
-          minRleativeX = bodyPart;
+        if (bodyPart < minRelativeX) {
+          minRelativeX = bodyPart;
         }
       }
-      return minRleativeX;
+      return minRelativeX;
+    },
+    fixXOutOfBounds: function() {
+    	
+    },
+    isYOutOfBounds: function() {
+    	return this.getRelativeY() > height;
+    },
+    isXOutOfBounds: function() {
+		return !this.getMinRelativeX() || this.getRelativeX() > width;
     },
     moveUp: function() {
       if (!this.frozen) {
@@ -191,17 +166,25 @@ var Brick = function(basePosition, drawBase, brickBody) {
         this.frozen = true;
       } 
       if (!this.frozen) {
-        this.base.y += 1;
+        this.base.y++;
       }
     },
     moveLeft: function() {
-      if (this.getMinRelativeX()) {
-        this.base.x -= 1;
+      if (this.getMinRelativeX() && !this.frozen) {
+        this.base.x--;
+      }
+
+      if (this.isXOutOfBounds()) {
+      	this.fixXOutOfBounds();
       }
     },
     moveRight: function() {
-      if (this.getRelativeX() < width) {
-        this.base.x += 1;
+      if (this.getRelativeX() < width && !this.frozen) {
+        this.base.x++;
+      }
+
+      if (this.isXOutOfBounds()) {
+      	this.fixXOutOfBounds();
       }
     },
     rotate: function(clockwise) {
@@ -215,7 +198,9 @@ var Brick = function(basePosition, drawBase, brickBody) {
   	  } else {
   	  	currentPosition--;
   	  }
-      console.log(this.position);
+
+
+
   	  this.body = _positionCoords[currentPosition].coords;
   	  this.position = _positionCoords[currentPosition].position;
     },
@@ -239,7 +224,40 @@ var Brick = function(basePosition, drawBase, brickBody) {
   };
 };
 
-var brickRepo = [new Brick()];
+var brickRepo = [new Brick([
+  	{
+  		position: Positions.n,
+  		coords: [
+  			{x: 0, y: 0}, 
+			{x: 0, y: 1}, 
+			{x: 0, y: 2},
+			{x: 1, y: 2}]
+  	},
+  	{
+  		position: Positions.e,
+  		coords: [
+  			{x: 0, y: 0}, 
+			{x: 0, y: 1}, 
+			{x: -1, y: 1},
+			{x: -2, y: 1}]
+  	},
+  	{
+  		position: Positions.s,
+  		coords: [
+  			{x: 0, y: 0}, 
+			{x: -1, y: 0}, 
+			{x: -1, y: 1},
+			{x: -1, y: 2}]
+  	},
+  	{
+  		position: Positions.w,
+  		coords: [
+  			{x: 0, y: 0}, 
+			{x: -1, y: 0}, 
+			{x: -2, y: 0},
+			{x: -2, y: 1}]
+  	}
+  ])];
 
 var refreshBrickRepo = function(positionPressed) {
   for (var i = 0; i < brickRepo.length; i++) {
